@@ -1,9 +1,10 @@
 package main
 
 import (
+	"fmt"
+
 	"fly/server"
 	"fly/socket"
-	"fmt"
 )
 
 func main() {

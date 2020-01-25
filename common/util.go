@@ -1,6 +1,10 @@
 package common
 
-import "log"
+import (
+	"log"
+	"reflect"
+	"unsafe"
+)
 
 func GoSafe(fn func()) {
 	go func() {
@@ -11,4 +15,14 @@ func GoSafe(fn func()) {
 		}()
 		fn()
 	}()
+}
+
+func BytesToStringFast(b []byte) string {
+	return *(*string)(unsafe.Pointer(&b))
+}
+
+func StringToBytes(s string) []byte {
+	sh := (*reflect.StringHeader)(unsafe.Pointer(&s))
+	bh := reflect.SliceHeader{sh.Data, sh.Len, 0}
+	return *(*[]byte)(unsafe.Pointer(&bh))
 }

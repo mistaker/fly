@@ -20,6 +20,7 @@ type (
 		rLock       sync.Mutex //todo 换成自旋锁
 		wLock       sync.Mutex //todo 换成自旋锁
 		Fd          int
+		Agreement   interface{} //存储协议数据
 	}
 )
 
