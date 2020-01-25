@@ -1,7 +1,7 @@
 # fly
 基于epoll 边缘模式实现的 golang reactor socket 框架
 
-###http协议 
+### http协议 
 ```go
 package main
 
@@ -19,7 +19,7 @@ func main() {
 
 ``` 
 
-###可以自己模仿 ``fly/agreement/http`` 很轻松的实现自己的应用层协议
+### 可以自己模仿 ``fly/agreement/http`` 很轻松的实现自己的应用层协议
 
 
 参考自
