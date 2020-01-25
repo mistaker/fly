@@ -7,7 +7,7 @@ import (
 
 var (
 	ConnectionsMap sync.Map
-	poller         *events.EventLoop
+	eventPoll      *events.EventLoop
 	onConnectFunc  func(conn *Connection)
 	onMessageFunc  func(conn *Connection, data []byte)
 	onCLose        func(conn *Connection)
@@ -17,5 +17,5 @@ func RegisterLogic(poll *events.EventLoop, onConnectF func(conn *Connection), on
 	onConnectFunc = onConnectF
 	onMessageFunc = onMessageF
 	onCLose = onCloseF
-	poller = poll
+	eventPoll = poll
 }

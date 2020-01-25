@@ -33,7 +33,7 @@ func NewConnection(fd int) error {
 	ConnectionsMap.Store(fd, conn)
 	onConnectFunc(conn)
 
-	if err := poller.AddSocketEnableRead(fd); err != nil {
+	if err := eventPoll.AddSocketEnableRead(fd); err != nil {
 		return err
 	}
 
@@ -63,7 +63,7 @@ func (conn *Connection) SendData(data []byte) {
 
 	conn.writeBuffer.Write(data[nums:])
 	if conn.writeBuffer.Len() > 0 {
-		if err := poller.EnableReadWrite(conn.Fd); err != nil {
+		if err := eventPoll.EnableReadWrite(conn.Fd); err != nil {
 			log.Printf("enableReadWrite err %v", err)
 		}
 	}
@@ -100,7 +100,7 @@ func (conn *Connection) handleWrite() {
 
 	conn.writeBuffer.Next(nums)
 	if conn.writeBuffer.Len() == 0 {
-		if err = poller.EnableRead(conn.Fd); err != nil {
+		if err = eventPoll.EnableRead(conn.Fd); err != nil {
 			log.Printf("EnableRead err %v", err)
 		}
 	}
@@ -142,7 +142,7 @@ func (conn *Connection) handleClose() {
 
 	onCLose(conn)
 
-	poller.DeleteFdInLoop(conn.Fd)
+	eventPoll.DeleteFdInLoop(conn.Fd)
 
 	ConnectionsMap.Delete(conn.Fd)
 

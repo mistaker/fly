@@ -30,6 +30,7 @@ func socketRead(conn *socket.Connection, data []byte) {
 		resp := productionHttpResponse(agreement.request)
 		handlerFunc(agreement.request, resp)
 		conn.SendData(resp.change2bytes())
+		agreement.request = nil
 		return
 	}
 
@@ -68,6 +69,7 @@ func socketRead(conn *socket.Connection, data []byte) {
 		resp := productionHttpResponse(agreement.request)
 		handlerFunc(agreement.request, resp)
 		conn.SendData(resp.change2bytes())
+		agreement.request = nil
 	}
 
 	agreement.requestBuffer = bodyBytes

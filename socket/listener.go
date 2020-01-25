@@ -38,7 +38,7 @@ func NewListener(network, addr string) (*Listener, error) {
 
 	fd := int(file.Fd())
 
-	if err := poller.AddSocketEnableRead(fd); err != nil {
+	if err := eventPoll.AddSocketEnableRead(fd); err != nil {
 		log.Printf("listen poll filed err %v", err)
 		return nil, err
 	}
