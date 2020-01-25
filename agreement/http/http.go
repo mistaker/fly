@@ -1,10 +1,7 @@
 package http
 
 import (
-	"strconv"
-	"strings"
-
-	"fly/common"
+	"fly/server"
 	"fly/socket"
 )
 
@@ -13,22 +10,11 @@ type (
 		requestBuffer []byte
 		request       *Request
 	}
-
-	Request struct {
-		Method  string
-		Url     string
-		Edition string
-		Header  map[string]string
-		Body    []byte
-		BodyNum int
-	}
 )
 
-func HttpSocketOpen(coon *socket.Connection) {
-	coon.Agreement = &httpAgreement{}
-}
+var handlerFunc func(req *Request, resp *Response)
 
-func HttpSocketRead(conn *socket.Connection, data []byte) {
+func socketRead(conn *socket.Connection, data []byte) {
 	agreement := conn.Agreement.(*httpAgreement)
 
 	if agreement.request != nil {
@@ -41,8 +27,9 @@ func HttpSocketRead(conn *socket.Connection, data []byte) {
 		agreement.request.Body = agreement.requestBuffer[:agreement.request.BodyNum]
 		agreement.requestBuffer = agreement.requestBuffer[agreement.request.BodyNum:]
 
-		//todo user logic
-
+		resp := productionHttpResponse(agreement.request)
+		handlerFunc(agreement.request, resp)
+		conn.SendData(resp.change2bytes())
 		return
 	}
 
@@ -77,10 +64,20 @@ func HttpSocketRead(conn *socket.Connection, data []byte) {
 
 	if agreement.request.BodyNum <= len(bodyBytes) {
 		agreement.request.Body = bodyBytes[:agreement.request.BodyNum]
-		//todo user logic
+
+		resp := productionHttpResponse(agreement.request)
+		handlerFunc(agreement.request, resp)
+		conn.SendData(resp.change2bytes())
 	}
 
 	agreement.requestBuffer = bodyBytes
+}
+
+func socketOpen(coon *socket.Connection) {
+	coon.Agreement = &httpAgreement{}
+}
+
+func socketClose(coon *socket.Connection) {
 }
 
 func findAgreementSpilt(data []byte) (int, bool) {
@@ -93,44 +90,13 @@ func findAgreementSpilt(data []byte) (int, bool) {
 	return 0, false
 }
 
-func parseHttpHeader(data []byte) *Request {
-	headerStr := common.BytesToStringFast(data)
-	stringSlice := strings.Split(headerStr, "\r\n")
+func Run(addr string, handler func(req *Request, resp *Response)) {
+	handlerFunc = handler
 
-	if len(stringSlice) < 1 {
-		return nil
+	ser, err := server.NewServer("tcp", addr, socketOpen, socketRead, socketClose)
+	if err != nil {
+		panic(err)
 	}
 
-	firstInfo := strings.Split(stringSlice[0], " ")
-	if len(firstInfo) < 3 {
-		return nil
-	}
-
-	var (
-		method, url, edition = firstInfo[0], firstInfo[1], firstInfo[2]
-		headerS              = make(map[string]string)
-		contentLen           = 0
-	)
-
-	for i := 1; i < len(stringSlice); i++ {
-		temHead := strings.Split(stringSlice[i], ":")
-		if len(temHead) < 2 {
-			continue
-		}
-		headerS[temHead[0]] = temHead[1]
-	}
-
-	if method == "POST" {
-		if lenStr, exit := headerS["Content-Length"]; exit {
-			contentLen, _ = strconv.Atoi(lenStr)
-		}
-	}
-
-	return &Request{
-		Method:  method,
-		Url:     url,
-		Edition: edition,
-		Header:  headerS,
-		BodyNum: contentLen,
-	}
+	ser.Run()
 }

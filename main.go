@@ -1,22 +1,9 @@
 package main
 
-import (
-	"fmt"
-
-	"fly/server"
-	"fly/socket"
-)
+import "fly/agreement/http"
 
 func main() {
-	ser, _ := server.NewServer("tcp", ":8000", func(conn *socket.Connection) {
-		fmt.Println("socket open ", conn.Fd)
-	}, func(conn *socket.Connection, data []byte) {
-
-		fmt.Println("socket message ", string(data))
-		conn.SendData(data)
-	}, func(conn *socket.Connection) {
-		fmt.Println("socket close ", conn.Fd)
+	http.Run(":8000", func(req *http.Request, resp *http.Response) {
+		resp.Write([]byte("hello world "))
 	})
-
-	ser.Run()
 }
